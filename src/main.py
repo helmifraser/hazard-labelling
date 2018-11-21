@@ -27,6 +27,10 @@ from pyforms.controls   import ControlText
 from pyforms.controls   import ControlSlider
 from pyforms.controls   import ControlPlayer
 from pyforms.controls   import ControlButton
+from pyforms.controls   import ControlEventTimeline
+from pyforms.controls   import ControlDockWidget
+
+from AnyQt import QtCore
 
 class VideoWindow(BaseWidget):
 
@@ -38,26 +42,35 @@ class VideoWindow(BaseWidget):
                         "dest": DEST
                         }
 
+        self._hazard_counter = 0
+
+        # Hazard set to occur for 60 frames upon flagging
+        self._hazard_default_duration = 60
+
         self.set_margin(10)
 
         #Definition of the forms fields
-        self._videofile  = ControlFile('Video')
+        self._videofile = ControlFile('Video')
         self._hazardbutton = ControlButton('Hazard')
-        self._player     = ControlPlayer('Player')
+        self._player = ControlPlayer('Player')
+        self._timeline = ControlEventTimeline('Timeline')
+        # self._panel = ControlDockWidget()
 
         #Define function calls on button presses
         self._videofile.changed_event = self.__videoFileSelectionEvent
         self._hazardbutton.value = self.__labelHazard
 
         #Define events
-        self._player.process_frame_event = self.__process_frame
+        self._player.process_frame_event = self.__processFrame
         self._player.click_event = self.__clickEvent
+        self._player.key_release_event = self.__tagEvent
 
         #Define the organization of the Form Controls
         self._formset = [
             ('_videofile'),
             '_player',
-            '_hazardbutton'
+            '_hazardbutton',
+            '_timeline'
             ]
 
         if self._args["folder"] is None:
@@ -76,7 +89,7 @@ class VideoWindow(BaseWidget):
         """
         self._player.value = self._videofile.value
 
-    def __process_frame(self, frame):
+    def __processFrame(self, frame):
         """
         Do some processing to the frame and return the result frame
         """
@@ -85,10 +98,29 @@ class VideoWindow(BaseWidget):
     def __clickEvent(self, click_event, x, y):
         self.__labelHazard()
 
+    def __tagEvent(self, event):
+        """
+        Label hazard using Enter key
+        """
+        key = event.key()
+
+        # QtCore.Qt.Key_Enter gives wrong value (at least on test PC) for Enter key
+        # Desired == 16777221, actual == 16777220
+
+        key_id = 16777220
+
+        if event.key() == key_id:
+            self.__labelHazard()
+
+    def __addFlag(self, value):
+        self._timeline.add_period(value)
+
     def __labelHazard(self):
         try:
+            self._hazard_counter += 1
             print("Hazard flagged! | Frame: {} Timestamp: {}".format(self._player.video_index,
                             round(self._player.video_index/self._player.fps, 3)))
+            self.__addFlag((self._player.video_index, self._player.video_index + self._hazard_default_duration, str(self._hazard_counter)))
         except Exception as e:
             try:
                 self._player.refresh()
