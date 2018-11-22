@@ -43,21 +43,24 @@ class VideoWindow(BaseWidget):
                         }
 
         self._hazard_counter = 0
-
-
+        self._video_count = len(self._args["filepath"])
+        self._current_video = 0
         self.set_margin(10)
 
         #Definition of the forms fields
         self._videofile = ControlFile('Video')
         self._hazardbutton = ControlButton('Hazard')
+        self._next = ControlButton('Next Video')
         self._player = ControlPlayer('Player')
         self._timeline = ControlEventTimeline('Timeline')
         self._panel = ControlDockWidget(label='Timeline', side='bottom', margin=10)
         self._panel.value = self._timeline
+        self._status = ControlText('Status')
 
         #Define function calls on button presses
         self._videofile.changed_event = self.__videoFileSelectionEvent
         self._hazardbutton.value = self.__labelHazard
+        self._next.value = self.__nextVideo
 
         #Define events
         self._player.process_frame_event = self.__processFrame
@@ -69,14 +72,15 @@ class VideoWindow(BaseWidget):
             '_player',
             # '_hazardbutton',
             '_panel',
-            '_videofile'
+            ('_videofile', '_next'),
+            '_status'
             ]
 
         self._video_loaded = False
 
         if self._args["folder"] is None:
             if self._args["filepath"] is not None:
-                self.__videoFileSelect(self._args["filepath"][0])
+                self.__videoFileSelect(self._args["filepath"][self._current_video])
 
         self._hazard_default_duration = 0
 
@@ -89,6 +93,7 @@ class VideoWindow(BaseWidget):
         self._hazard_default_duration = int(self._player.fps * 2)
         self._video_loaded = True
 
+
     def __videoFileSelectionEvent(self):
         """
         When the videofile is selected instantiate the video in the player
@@ -98,6 +103,17 @@ class VideoWindow(BaseWidget):
         self._hazard_default_duration = int(self._player.fps * 2)
         self._video_loaded = True
 
+    def __nextVideo(self):
+        if self._current_video >= (self._video_count - 1):
+            self.__updateStatus("No more videos")
+        else:
+            self._current_video += 1
+            self.__videoFileSelect(self._args["filepath"][self._current_video])
+            self.__reset()
+
+    def __reset(self):
+        self._timeline.clean()
+        self.__updateStatus("")
 
     def __processFrame(self, frame):
         """
@@ -129,18 +145,20 @@ class VideoWindow(BaseWidget):
         if self._video_loaded:
             try:
                 self._hazard_counter += 1
-                print("Hazard flagged! | Frame: {} Timestamp: {}".format(self._player.video_index,
+                self.__updateStatus("Hazard flagged! | Frame: {} Timestamp: {}".format(self._player.video_index,
                                 round(self._player.video_index/self._player.fps, 3)))
                 self.__addFlag((self._player.video_index, self._player.video_index + self._hazard_default_duration, str(self._hazard_counter)))
             except Exception as e:
                 try:
                     self._player.refresh()
-                    print("Hazard flagged! | Frame: {} Timestamp: {}".format(self._player.video_index,
+                    self.__updateStatus("Hazard flagged! | Frame: {} Timestamp: {}".format(self._player.video_index,
                                     round(self._player.video_index/self._player.fps, 3)))
                 except Exception as e:
-                    print("Unable to label, exiting...")
+                    self.__updateStatus("Unable to label, exiting...")
                     sys.exit(0)
 
+    def __updateStatus(self, msg):
+        self._status.value = str(msg)
 
 
 if __name__ == '__main__':
@@ -152,7 +170,4 @@ if __name__ == '__main__':
     screen_resolution = app_unused.desktop().screenGeometry()
     width, height = screen_resolution.width(), screen_resolution.height()
 
-    width = width/2
-    height = height/2
-
-    start_app(VideoWindow, geometry=(0, 0, width, height))
+    start_app(VideoWindow, geometry=(width/4, height/4, width/2, height/2))
