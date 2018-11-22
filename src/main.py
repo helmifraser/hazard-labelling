@@ -50,6 +50,7 @@ class VideoWindow(BaseWidget):
         self._videofile = ControlFile('Video')
         self._hazardbutton = ControlButton('Hazard')
         self._next = ControlButton('Next Video')
+        self._save_data = ControlButton('Save labels')
         self._player = ControlPlayer('Player')
         self._timeline = ControlEventTimeline('Timeline')
         self._panel = ControlDockWidget(label='Timeline', side='bottom', margin=10)
@@ -76,6 +77,7 @@ class VideoWindow(BaseWidget):
         self._videofile.changed_event = self.__videoFileSelectionEvent
         self._hazardbutton.value = self.__labelHazard
         self._next.value = self.__nextVideo
+        self._save_data.value = self.__saveData
         self._panel.value = self._timeline
         self._progress.value = self._current_video + 1
 
@@ -90,7 +92,7 @@ class VideoWindow(BaseWidget):
             # '_hazardbutton',
             '_panel',
             ('_videofile', '_next'),
-            '_status',
+            ('_status', '_save_data'),
             '_progress'
             ]
 
@@ -186,6 +188,10 @@ class VideoWindow(BaseWidget):
                 except Exception as e:
                     self.__updateStatus("Unable to label, exiting...")
                     sys.exit(0)
+
+    def __saveData(self, arg):
+        self._timeline.export_csv_file(self._videofile.value + ".csv")
+        self.__updateStatus("Saving {} to {}".format(self._videofile.value + ".csv", self._args["dest"]))
 
     def __updateStatus(self, msg):
         self._status.value = str(msg)
