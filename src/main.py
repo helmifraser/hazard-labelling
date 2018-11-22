@@ -78,20 +78,24 @@ class VideoWindow(BaseWidget):
             if self._args["filepath"] is not None:
                 self.__videoFileSelect(self._args["filepath"][0])
 
-        # Hazard set to occur for 60 frames upon flagging
-        self._hazard_default_duration = int(self._player.fps * 2)
+        self._hazard_default_duration = 0
 
     def __videoFileSelect(self, filepath):
         self._videofile.value = str(filepath)
         self._player.value = self._videofile.value
         self._player.refresh()
         self._player.update_frame()
+        # Hazard set to occur for 60 frames upon flagging
+        self._hazard_default_duration = int(self._player.fps * 2)
 
     def __videoFileSelectionEvent(self):
         """
         When the videofile is selected instantiate the video in the player
         """
         self._player.value = self._videofile.value
+        # Hazard set to occur for 60 frames upon flagging
+        self._hazard_default_duration = int(self._player.fps * 2)
+
 
     def __processFrame(self, frame):
         """
