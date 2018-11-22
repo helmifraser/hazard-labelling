@@ -96,7 +96,11 @@ class VideoWindow(BaseWidget):
 
         self._video_loaded = False
 
-        self.__videoFileSelect(self._file_list[self._current_video])
+        try:
+            self.__videoFileSelect(self._file_list[self._current_video])
+        except Exception as e:
+            self.__updateStatus("Select video...")
+
         self._hazard_default_duration = 0
 
     def __videoFileSelect(self, filepath):
@@ -110,7 +114,6 @@ class VideoWindow(BaseWidget):
             self._video_loaded = True
         except Exception as e:
             self.__updateStatus("Unable to select video")
-
 
     def __videoFileSelectionEvent(self):
         """
@@ -166,11 +169,15 @@ class VideoWindow(BaseWidget):
 
     def __labelHazard(self):
         if self._video_loaded:
+            if self._player.video_index > (self._player.max - self._hazard_default_duration):
+                flag_duration = round(self._player.max - self._player.video_index)
+            else:
+                flag_duration = self._hazard_default_duration
             try:
                 self._hazard_counter += 1
                 self.__updateStatus("Hazard flagged! | Frame: {} Timestamp: {}".format(self._player.video_index,
                                 round(self._player.video_index/self._player.fps, 3)))
-                self.__addFlag((self._player.video_index, self._player.video_index + self._hazard_default_duration, str(self._hazard_counter)))
+                self.__addFlag((self._player.video_index, self._player.video_index + flag_duration, str(self._hazard_counter)))
             except Exception as e:
                 try:
                     self._player.refresh()
