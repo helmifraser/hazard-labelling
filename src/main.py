@@ -44,8 +44,6 @@ class VideoWindow(BaseWidget):
 
         self._hazard_counter = 0
 
-        # Hazard set to occur for 60 frames upon flagging
-        self._hazard_default_duration = 60
 
         self.set_margin(10)
 
@@ -54,7 +52,8 @@ class VideoWindow(BaseWidget):
         self._hazardbutton = ControlButton('Hazard')
         self._player = ControlPlayer('Player')
         self._timeline = ControlEventTimeline('Timeline')
-        # self._panel = ControlDockWidget()
+        self._panel = ControlDockWidget(label='Timeline', side='bottom', margin=10)
+        self._panel.value = self._timeline
 
         #Define function calls on button presses
         self._videofile.changed_event = self.__videoFileSelectionEvent
@@ -67,15 +66,20 @@ class VideoWindow(BaseWidget):
 
         #Define the organization of the Form Controls
         self._formset = [
-            ('_videofile'),
             '_player',
-            '_hazardbutton',
-            '_timeline'
+            # '_hazardbutton',
+            '_panel',
+            '_videofile'
             ]
 
+        # self._player.refresh()
+        # self._player.update_frame()
         if self._args["folder"] is None:
             if self._args["filepath"] is not None:
                 self.__videoFileSelect(self._args["filepath"][0])
+
+        # Hazard set to occur for 60 frames upon flagging
+        self._hazard_default_duration = int(self._player.fps * 2)
 
     def __videoFileSelect(self, filepath):
         self._videofile.value = str(filepath)
@@ -135,5 +139,13 @@ class VideoWindow(BaseWidget):
 if __name__ == '__main__':
 
     from pyforms import start_app
+    from PyQt5.QtWidgets import QApplication
 
-    start_app(VideoWindow)
+    app_unused = QApplication([])
+    screen_resolution = app_unused.desktop().screenGeometry()
+    width, height = screen_resolution.width(), screen_resolution.height()
+
+    width = width/2
+    height = height/2
+
+    start_app(VideoWindow, geometry=(0, 0, width, height))
