@@ -72,8 +72,8 @@ class VideoWindow(BaseWidget):
             '_videofile'
             ]
 
-        # self._player.refresh()
-        # self._player.update_frame()
+        self._video_loaded = False
+
         if self._args["folder"] is None:
             if self._args["filepath"] is not None:
                 self.__videoFileSelect(self._args["filepath"][0])
@@ -87,6 +87,7 @@ class VideoWindow(BaseWidget):
         self._player.update_frame()
         # Hazard set to occur for 60 frames upon flagging
         self._hazard_default_duration = int(self._player.fps * 2)
+        self._video_loaded = True
 
     def __videoFileSelectionEvent(self):
         """
@@ -95,6 +96,7 @@ class VideoWindow(BaseWidget):
         self._player.value = self._videofile.value
         # Hazard set to occur for 60 frames upon flagging
         self._hazard_default_duration = int(self._player.fps * 2)
+        self._video_loaded = True
 
 
     def __processFrame(self, frame):
@@ -124,19 +126,20 @@ class VideoWindow(BaseWidget):
         self._timeline.add_period(value)
 
     def __labelHazard(self):
-        try:
-            self._hazard_counter += 1
-            print("Hazard flagged! | Frame: {} Timestamp: {}".format(self._player.video_index,
-                            round(self._player.video_index/self._player.fps, 3)))
-            self.__addFlag((self._player.video_index, self._player.video_index + self._hazard_default_duration, str(self._hazard_counter)))
-        except Exception as e:
+        if self._video_loaded:
             try:
-                self._player.refresh()
+                self._hazard_counter += 1
                 print("Hazard flagged! | Frame: {} Timestamp: {}".format(self._player.video_index,
                                 round(self._player.video_index/self._player.fps, 3)))
+                self.__addFlag((self._player.video_index, self._player.video_index + self._hazard_default_duration, str(self._hazard_counter)))
             except Exception as e:
-                print("Unable to label, exiting...")
-                sys.exit(0)
+                try:
+                    self._player.refresh()
+                    print("Hazard flagged! | Frame: {} Timestamp: {}".format(self._player.video_index,
+                                    round(self._player.video_index/self._player.fps, 3)))
+                except Exception as e:
+                    print("Unable to label, exiting...")
+                    sys.exit(0)
 
 
 
