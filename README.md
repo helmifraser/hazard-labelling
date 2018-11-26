@@ -6,7 +6,7 @@ This labelling tool will allow a user to label "hazardous" frames in videos, sim
 
 This is an early prototype used primarily for myself in my research and therefore is in a perpetual state of being "in-dev", provided as is.
 
-![Screenshot][/docs/screenshot.png]
+![screenshot][/docs/screenshot]
 
 ## Pre-Usage
 
