@@ -140,6 +140,8 @@ class VideoWindow(BaseWidget):
 
     def __reset(self):
         self._player.stop()
+        self.__saveData()
+        print("saving on reset")
         self._timeline.clean()
         self.__updateStatus("")
 
@@ -189,7 +191,7 @@ class VideoWindow(BaseWidget):
                     self.__updateStatus("Unable to label, exiting...")
                     sys.exit(0)
 
-    def __saveData(self, arg):
+    def __saveData(self):
         self._timeline.export_csv_file(self._videofile.value + ".csv")
         self.__updateStatus("Saving {} to {}".format(self._videofile.value + ".csv", self._args["dest"]))
 
