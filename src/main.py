@@ -192,8 +192,8 @@ class VideoWindow(BaseWidget):
                     sys.exit(0)
 
     def __saveData(self):
-        self._timeline.export_csv_file(self._videofile.value + ".csv")
-        self.__updateStatus("Saving {} to {}".format(self._videofile.value + ".csv", self._args["dest"]))
+        self._timeline.export_csv_file(self._videofile.value + "_hazard.csv")
+        self.__updateStatus("Saving {} to {}".format(self._videofile.value + "_hazard.csv", self._args["dest"]))
 
     def __updateStatus(self, msg):
         self._status.value = str(msg)
