@@ -20,6 +20,8 @@ FILEPATH = args.filepath
 FOLDER = args.folder
 DEST = args.dest
 
+ACCEPTABLE_EXT = ['mp4', 'MP4', 'mov', 'MOV', 'wmv', 'avi', 'WMV', 'AVI', 'mpeg', \
+                    'mkv', 'mpg', 'm4v']
 
 from pyforms.basewidget import BaseWidget
 from pyforms.controls   import ControlFile
@@ -63,10 +65,18 @@ class VideoWindow(BaseWidget):
         elif self._args["folder"] is not None:
             if os.path.isdir(self._args["folder"]):
                 self.__updateStatus("Source folder found at: {}".format(self._args["folder"]))
+                print("Scanning folder and all subfolders... {}".format(self._args["folder"]))
+                count = 0
                 for (dirpath, dirnames, filenames) in os.walk(self._args["folder"]):
-                    path = [dirpath + "/" + f for f in filenames]
+                    path = []
+                    for f in filenames:
+                        if f.rsplit('.')[-1] in ACCEPTABLE_EXT:
+                            count += 1
+                            path.append(dirpath + "/" + f)
                     self._file_list.extend(path)
-
+                    if count % 100 == 0:
+                        print("Found {} files...".format(count))
+                print("Scan complete, found {} acceptable files".format(count))
         self._video_count = len(self._file_list)
         self._progress = ControlProgress(label="Video %p of " + str(self._video_count), defaultValue=1, min=1, max=self._video_count)
 
